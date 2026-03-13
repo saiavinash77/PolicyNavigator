@@ -1,7 +1,7 @@
 ﻿[project]
 name = "policynavigator"
-version = "0.2.0"
-description = "LangChain RAG + Gemini for policy research"
+version = "0.2.1"
+description = "LangChain RAG + Groq for policy research"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -15,7 +15,7 @@ dependencies = [
   "langchain-text-splitters",
   "langchain-groq",
   "faiss-cpu",
-  "sentence-transformers",
+  "fastembed",
   "pypdf",
   "numpy",
 ]

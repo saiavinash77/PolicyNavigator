@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
@@ -20,7 +20,7 @@ def _ensure_dirs() -> None:
 
 
 def _embeddings():
-    return HuggingFaceEmbeddings(model_name=settings.embed_model)
+    return FastEmbedEmbeddings(model_name=settings.embed_model)
 
 
 def _llm(model_name: str):
@@ -111,7 +111,7 @@ def chat_with_docs(doc_id: str, question: str) -> Dict[str, Any]:
 
     docs = retriever.get_relevant_documents(question)
     context = "\n\n".join([
-        f"[page {d.metadata.get('page', 'n/a')}]: {d.page_content}" for d in docs
+        f"[page {d.metadata.get('page', 'n/a')}] {d.page_content}" for d in docs
     ])
 
     prompt = (

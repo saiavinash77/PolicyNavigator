@@ -6,7 +6,6 @@ from dotenv import load_dotenv, dotenv_values
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=ENV_PATH, override=True)
 
-# Handle UTF-8 BOM in .env keys if present
 _values = dotenv_values(ENV_PATH)
 if "GROQ_API_KEY" not in os.environ and "\ufeffGROQ_API_KEY" in _values:
     os.environ["GROQ_API_KEY"] = _values.get("\ufeffGROQ_API_KEY") or ""
@@ -14,7 +13,7 @@ if "GROQ_API_KEY" not in os.environ and "\ufeffGROQ_API_KEY" in _values:
 class Settings(BaseModel):
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     groq_model: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-    embed_model: str = os.getenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+    embed_model: str = os.getenv("EMBED_MODEL", "BAAI/bge-small-en-v1.5")
     storage_dir: str = os.getenv("STORAGE_DIR", "storage")
     uploads_dir: str = os.getenv("UPLOADS_DIR", "data/uploads")
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "900"))
