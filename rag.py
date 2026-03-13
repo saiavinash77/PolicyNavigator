@@ -31,6 +31,8 @@ def _llm(model_name: str):
         model_name=model_name,
         groq_api_key=settings.groq_api_key,
         temperature=0.2,
+        timeout=30,
+        max_retries=2,
     )
 
 

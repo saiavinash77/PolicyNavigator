@@ -5,6 +5,7 @@ import os
 import shutil
 from typing import Dict
 from dotenv import load_dotenv
+import groq
 
 from config import settings, refresh_settings
 from rag import ingest_document, chat_without_docs, chat_with_docs
@@ -59,12 +60,24 @@ async def chat(payload: Dict):
 @app.get("/health")
 async def health():
     refresh_settings()
+    groq_ok = False
+    groq_error = None
+    try:
+        if settings.groq_api_key:
+            client = groq.Groq(api_key=settings.groq_api_key)
+            client.models.list()
+            groq_ok = True
+    except Exception as e:
+        groq_error = str(e)
+
     return {
         "status": "ok",
         "groq_key_set": bool(settings.groq_api_key),
         "groq_model": settings.groq_model,
         "embed_model": settings.embed_model,
         "storage_dir": settings.storage_dir,
+        "groq_ok": groq_ok,
+        "groq_error": groq_error,
     }
 
 
