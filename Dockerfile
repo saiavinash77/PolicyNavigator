@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY pyproject.toml .
 RUN pip install --no-cache-dir uv
-RUN uv pip install -r pyproject.toml
+RUN uv pip install --system -r pyproject.toml
 
 COPY . .
 
