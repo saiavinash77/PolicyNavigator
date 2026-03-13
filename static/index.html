@@ -1,0 +1,241 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Policies of Thought</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+    :root {
+      --bg: #ffffff;
+      --text: #0f0f10;
+      --muted: #5a5a5a;
+      --border: #e6e6e6;
+      --panel: #f7f7f8;
+      --shadow: 0 14px 36px rgba(0,0,0,0.10);
+      --shadow-soft: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 28px 24px 8px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 0.2px;
+    }
+    p.sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .chat-area {
+      padding: 24px;
+      max-width: 980px;
+      margin: 0 auto;
+      width: 100%;
+      overflow: auto;
+      flex: 1 1 auto;
+    }
+
+    .msg {
+      max-width: 70%;
+      padding: 12px 14px;
+      border-radius: 18px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      box-shadow: var(--shadow-soft);
+    }
+    .msg.user {
+      margin-left: auto;
+      background: #ffffff;
+      border: 1px solid var(--border);
+    }
+    .msg.ai {
+      margin-right: auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+
+    .composer {
+      padding: 14px 24px 24px;
+      display: grid;
+      place-items: center;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .input-wrap {
+      width: min(980px, 95vw);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .icon-btn:hover { background: #f3f3f3; }
+
+    .input {
+      border: none;
+      outline: none;
+      font-size: 16px;
+      font-family: "Manrope", sans-serif;
+      color: var(--text);
+      background: transparent;
+    }
+
+    .send {
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #111111;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .send:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 16px;
+      text-align: center;
+    }
+
+    input[type="file"] { display: none; }
+
+    @media (max-width: 800px) {
+      .msg { max-width: 90%; }
+      .input-wrap { grid-template-columns: auto 1fr auto; }
+    }
+  </style>
+</head>
+<body>
+  <header id="hero">
+    <h1>Policies of Thought</h1>
+    <p class="sub">Ask about policy, or upload a document to ground answers with citations.</p>
+  </header>
+
+  <div class="chat-area" id="chatArea"></div>
+
+  <div class="composer">
+    <div class="input-wrap">
+      <label class="icon-btn" for="pdfFile" title="Upload PDF">+</label>
+      <input id="pdfFile" type="file" accept="application/pdf" />
+      <input class="input" id="message" placeholder="Ask anything" />
+      <button class="send" id="sendBtn">Send</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const pdfFile = document.getElementById('pdfFile');
+    const chatArea = document.getElementById('chatArea');
+    const message = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
+    const status = document.getElementById('status');
+    const hero = document.getElementById('hero');
+
+    const messages = [];
+    let currentDocId = null;
+
+    function addMessage(role, content) {
+      const el = document.createElement('div');
+      el.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+      el.textContent = content;
+      chatArea.appendChild(el);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    pdfFile.addEventListener('change', async () => {
+      if (!pdfFile.files.length) return;
+      status.textContent = 'Uploading and indexing...';
+
+      const formData = new FormData();
+      formData.append('file', pdfFile.files[0]);
+
+      try {
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Upload failed');
+
+        currentDocId = data.doc_id;
+        status.textContent = `Indexed ${data.pages} pages into ${data.chunks} chunks.`;
+      } catch (err) {
+        status.textContent = 'Upload failed. Please try again.';
+      } finally {
+        pdfFile.value = '';
+      }
+    });
+
+    async function sendMessage() {
+      const text = message.value.trim();
+      if (!text) return;
+
+      messages.push({ role: 'user', content: text });
+      addMessage('user', text);
+      message.value = '';
+      hero.style.display = 'none';
+
+      status.textContent = 'Thinking...';
+      sendBtn.disabled = true;
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doc_id: currentDocId, messages })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Chat failed');
+
+        messages.push({ role: 'assistant', content: data.answer });
+        addMessage('ai', data.answer);
+        status.textContent = '';
+      } catch (err) {
+        status.textContent = 'Unable to respond right now.';
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    message.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

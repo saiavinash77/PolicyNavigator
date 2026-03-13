@@ -1,0 +1,11 @@
+__pycache__/
+venv/
+.venv/
+.env
+storage/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+data/uploads/

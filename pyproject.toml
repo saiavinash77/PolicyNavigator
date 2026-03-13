@@ -1,0 +1,24 @@
+﻿[project]
+name = "policynavigator"
+version = "0.2.0"
+description = "LangChain RAG + Gemini for policy research"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "python-dotenv",
+  "python-multipart",
+  "pydantic",
+  "langchain",
+  "langchain-community",
+  "langchain-text-splitters",
+  "langchain-groq",
+  "faiss-cpu",
+  "sentence-transformers",
+  "pypdf",
+  "numpy",
+]
+
+[tool.uv]
+package = false
